@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- To replace with motion control -->
+    <node pkg="unitree_control_hri" type="publish_keyboard_command.py" name="publish_keyboard_command"> </node>
+    <node pkg="unitree_control_hri" type="convert_cmd_vel_to_high_cmd_ros.py" name="convert_cmd_vel_to_high_cmd_ros"> </node>
+
+    <!-- <node pkg="unitree_control_hri" type="target_dummy.py" name="target_dummy"> </node> -->
+    <!-- <node pkg="unitree_control_hri" type="control2target.py" name="control2target"> </node> -->
+    <node pkg="unitree_control_hri" type="gps_process.py" name="gps_process"> </node>
+    <node pkg="unitree_control_hri" type="robot_position_publisher.py" name="robot_position_publisher"> </node>
+      
+</launch>

@@ -1,0 +1,23 @@
+<launch>  
+<!-- <param name="robot_description" command="$(find xacro)/xacro '$(find pointer_model)/urdf/camera_link.xacro'"/> -->
+<arg name="pointer" default="recored"/>
+<node pkg="tf" type="static_transform_publisher" name="cam_to_cameram_tf" args="0 0 1.0 0 0 1.57 map camera_frame_motive 10" />
+<node pkg="tf" type="static_transform_publisher" name="cameram_to_camera_tf" args="0 0 0 0 3.14 -1.57 camera_frame_motive camera_frame 10" />
+<!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/> -->
+<param name="StartAnimetion" value="false" />
+<group if="$(eval pointer == 'recored')">
+    <node name="PublishRecordeDataTopic" pkg="pointer_model" type="PublishRecordeDataTopic.py"/>
+    <node name="SubscribAndPlotRecordeDataTopic" pkg="pointer_model" type="SubscribAndPlotRecordeDataTopic.py"/>
+    <node name="SubscribAndPlotArrowsTF" pkg="pointer_model" type="SubscribAndPlotArrowsTF.py"/>
+</group>
+<group if="$(eval pointer == 'modle')">
+    <!-- <node name="Eden_complete_model" pkg="pointer_model" type="Eden_complete_model.py"/> -->
+    <node name="SubscribAndPlotModleDataTopic" pkg="pointer_model" type="SubscribAndPlotModleDataTopic.py"/>
+    <node name="SubscribAndPlotModleArrowsTF" pkg="pointer_model" type="SubscribAndPlotModleArrowsTF.py"/>
+  
+</group>
+
+<node type="rviz" name="rviz" pkg="rviz" args="-d $(find pointer_model)/config/rviz.rviz"/>
+<node pkg="pointer_model" type="RealTime_6_pub_ros.py" name="RealTime_6_pub_ros"> </node>
+<!-- <node pkg="pointer_model" type="target_pub.py" name="target_pub"> </node> -->
+</launch>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot name="box_bot">
+        
+  <link name="map">
+  </link>
+
+  <link name="camera_link">
+    <visual>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="map_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 1" />
+    <parent link="map" />
+    <child link="camera_link" />
+  </joint>
+  
+</robot>
