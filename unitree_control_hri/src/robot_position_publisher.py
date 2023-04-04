@@ -15,7 +15,7 @@ class position_publisher(object):
     yaw = 0.
     path_odo = []
     path_gps = []
-    set_target = False
+    moving_mode = False
 
     def __init__(self):
         # rospy.Subscriber('/gps', Pose2D, self.get_gps_coor)
@@ -25,7 +25,7 @@ class position_publisher(object):
         rospy.wait_for_message("/target", Float64MultiArray)  
         rospy.Subscriber('/robot_position', Float64MultiArray, self.get_gps_position)
         rospy.wait_for_message("/robot_position", Float64MultiArray)  
-        s = rospy.Service('set_target', Trigger, self.set_target)
+        s = rospy.Service('set_moving_mode', Trigger, self.set_moving_mode)
 
         self.fig = plt.figure(0, figsize=(7, 4))
 
@@ -40,7 +40,10 @@ class position_publisher(object):
         msg_target = Float64MultiArray()
         msg_yaw = Float64()
 
+        
+
         start = True
+        i = 0
         while not rospy.is_shutdown(): 
             print('Running robot pub')
             if self.start and not np.all(self.start_position == 0):
@@ -54,18 +57,24 @@ class position_publisher(object):
             msg_yaw.data = self.yaw
             self.yaw_pub.publish(msg_yaw)
 
-            if not self.set_target or start:
+            # if not self.set_moving_mode:
+            #     self.target_new = np.array([[np.cos(self.yaw), -np.sin(self.yaw)], [np.sin(self.yaw), np.cos(self.yaw)]]).dot(self.target[:2])
+            # if start:
+            #     self.target_new = np.array([[np.cos(self.yaw), -np.sin(self.yaw)], [np.sin(self.yaw), np.cos(self.yaw)]]).dot(self.target[:2])
+            #     start = False
+
+            if not self.moving_mode:
                 self.target_new = np.array([[np.cos(self.yaw), -np.sin(self.yaw)], [np.sin(self.yaw), np.cos(self.yaw)]]).dot(self.target[:2])
-                start = False
-                
             msg_target.data = np.copy(self.target_new)
             self.target_pub.publish(msg_target)
             
-            self.path_odo.append(self.current_odo_position)
-            self.path_gps.append(self.current_gps_position)
+            #if i % 10 == 0:
+                #self.path_odo.append(self.current_odo_position)
+                #self.path_gps.append(np.copy(self.current_gps_pos))
 
             self.PlotModelData()
             rospy.sleep(0.1) 
+            i += 1
 
 
     def get_high_msg_msg(self, msg):
@@ -84,14 +93,17 @@ class position_publisher(object):
         self.target = np.array(msg.data)
 
     def get_gps_position(self, msg):
-        self.current_gps_pos = np.array(msg.data)
+        self.current_gps_pos = np.array([msg.data[0], msg.data[1]])
 
-    def set_target(self, request):
-        self.set_target = not self.set_target
-        if self.set_target:
-            return TriggerResponse(success=True, message="Setting current target!")
+    def set_moving_mode(self, request):
+        self.moving_mode = not self.moving_mode
+        self.path_odo = []
+        self.path_gps = []
+
+        if self.moving_mode:
+            return TriggerResponse(success=True, message="Setting moving mode!")
         else:
-            return TriggerResponse(success=True, message="Releasing target!")
+            return TriggerResponse(success=True, message="Disabling moving mode!")
 
     def PlotModelData(self):  
         plt.cla()
@@ -102,12 +114,12 @@ class position_publisher(object):
         P_odo = np.array(self.path_odo)
         P_gps = np.array(self.path_gps)
 
-        plt.plot(P_odo[:,0], P_odo[:,1], ':g')
-        plt.plot(P_gps[:,0], P_gps[:,1], '-k')
-        plt.plot(x_odo, y_odo, 'or')
-        plt.plot([x_odo, x_odo + 0.05*np.cos(self.yaw)], [y_odo, y_odo + 0.05*np.sin(self.yaw)], '-b')
+        #plt.plot(P_odo[:,0], P_odo[:,1], ':k')
+        #plt.plot(P_gps[:,0], P_gps[:,1], ':k')
+        # plt.plot(x_odo, y_odo, 'or')
+        # plt.plot([x_odo, x_odo + 0.15*np.cos(self.yaw)], [y_odo, y_odo + 0.15*np.sin(self.yaw)], '-b')
         plt.plot(x_gps, y_gps, 'og')
-        plt.plot([x_gps, x_gps + 0.05*np.cos(self.yaw)], [y_gps, y_gps + 0.05*np.sin(self.yaw)], '-b')
+        plt.plot([x_gps, x_gps + 0.15*np.cos(self.yaw)], [y_gps, y_gps + 0.15*np.sin(self.yaw)], '-b')
         plt.plot(self.target_new[0], self.target_new[1], 'dr', markersize = 5)
              
         plt.xlabel('x')

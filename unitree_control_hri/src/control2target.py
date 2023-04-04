@@ -14,14 +14,14 @@ class Control(object):
         self.PubHighCmd = rospy.Publisher('high_cmd', HighCmd, queue_size=1)
         
         s = rospy.Service('trigger', Trigger, self.trigger)
-        self.set_target_srv = rospy.ServiceProxy('set_target', Trigger)
+        self.set_target_srv = rospy.ServiceProxy('set_moving_mode', Trigger)
+        self.gps_reset_srv = rospy.ServiceProxy('gps_reset', Trigger)
         rospy.wait_for_message("/target_new", Float64MultiArray)  
 
         self.PubMsg = HighCmd()
         self.PubMsg.head = [254,239]
         self.PubMsg.levelFlag = 238
         self.set_default_stop()
-        
 
         while not rospy.is_shutdown(): 
             self.get_angle2target() # Compute angle deviation from target
@@ -46,7 +46,7 @@ class Control(object):
         print('Moving forward!')
         self.PubMsg.mode = 2
         self.PubMsg.gaitType = 1
-        self.PubMsg.velocity[0] = 0.2
+        self.PubMsg.velocity[0] = 0.4
         self.PubMsg.velocity[1] = 0
         self.PubMsg.yawSpeed = 0
         self.PubMsg.footRaiseHeight = 0.1
@@ -60,7 +60,7 @@ class Control(object):
         self.PubMsg.footRaiseHeight = 0.1
 
         # Test these two
-        self.PubMsg.yawSpeed = self.rotation_direction * 0.5
+        self.PubMsg.yawSpeed = self.rotation_direction * 0.7
         self.PubMsg.euler[2] = self.angle2target 
 
     def set_default_stop(self):
@@ -70,7 +70,7 @@ class Control(object):
         self.PubMsg.footRaiseHeight = 0
         self.PubMsg.bodyHeight = 0
         self.PubMsg.euler[0] = 0
-        self.PubMsg.euler[1] = 0
+        self.PubMsg.euler[1] = -np.deg2rad(20)*0
         self.PubMsg.euler[2] = 0
         self.PubMsg.velocity[0] = 0.0
         self.PubMsg.velocity[1] = 0.0
@@ -103,7 +103,12 @@ class Control(object):
 
     def trigger(self, request):
         self.move2target = not self.move2target
-        self.set_target_srv(TriggerRequest()) # Freeze/release target
+
+        try:
+            self.set_target_srv(TriggerRequest()) # Freeze/release target
+            self.gps_reset_srv(TriggerRequest())
+        except:
+            pass
 
         if self.move2target:
             print('Triggered motion to target!')

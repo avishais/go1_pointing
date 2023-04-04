@@ -19,5 +19,5 @@
 
 <node type="rviz" name="rviz" pkg="rviz" args="-d $(find pointer_model)/config/rviz.rviz"/>
 <node pkg="pointer_model" type="RealTime_6_pub_ros.py" name="RealTime_6_pub_ros"> </node>
-<!-- <node pkg="pointer_model" type="target_pub.py" name="target_pub"> </node> -->
+<node pkg="pointer_model" type="target_pub.py" name="target_pub"> </node>
 </launch>

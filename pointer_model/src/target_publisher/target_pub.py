@@ -10,18 +10,22 @@ from visualization_msgs.msg import Marker
 import numpy as np
 import math
 from scipy.spatial.transform import Rotation
+from std_srvs.srv import Trigger, TriggerResponse
 
 
 class target_pub(object):
-    dog_height = 0.7 # meters
+    dog_height = 0.4 # meters
     Q_window = 1
     robot_pitch = np.deg2rad(0)
+    # set_target = False
+
     def __init__(self):
         self.x, self.y, self.z, self.pitch, self.yaw = [], [], [], [], []
         rospy.Subscriber('NewPosition', Float64MultiArray, self.get_new_cords) 
         rospy.wait_for_message("NewPosition", Float64MultiArray)  
         self.publisher_ = rospy.Publisher('target', Float64MultiArray, queue_size=10)  
         self.listener = tf.TransformListener()
+        # s = rospy.Service('set_target', Trigger, self.set_target)
 
         self.Q = []
         while not rospy.is_shutdown():  
@@ -30,9 +34,9 @@ class target_pub(object):
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 continue
 
+            # if not self.set_target:
             self.compute_target()
             rospy.sleep(0.01)  
-
 
     def get_new_cords(self, msg):
         self.msg = msg
@@ -51,11 +55,12 @@ class target_pub(object):
         Rrobot = Rotation.from_rotvec([0, self.robot_pitch, 0]).as_dcm() # Robot is inclined in angle 'robot_pitch'
         p = Rrobot.dot(p) # In robot frame
         xh = Rrobot.dot(xh)
+        xh[0] += 1.8
 
         # Parametric equations
         t = (-self.dog_height-p[2])/xh[2]
-        x_target = p[0] + t * xh[0]
-        y_target = p[1] + t * xh[1]
+        x_target = p[0] + t * xh[0] 
+        y_target = p[1] + t * xh[1] 
         z_target = p[2] + t * xh[2]
         # xh_ = np.array([x_target, y_target, z_target]).T # In camera frame
         # xh = Rrobot.dot(xh_) # In robot frame
@@ -78,6 +83,13 @@ class target_pub(object):
     def get_mean_target(self):
         Q = np.array(self.Q)
         return list(np.mean(Q, axis = 0))
+    
+    # def set_target(self, request):
+    #     self.set_target = not self.set_target
+    #     if self.set_target:
+    #         return TriggerResponse(success=True, message="Setting current target!")
+    #     else:
+    #         return TriggerResponse(success=True, message="Releasing target!")
     
     def PubMarkerArrow(self,frame_id, pos, ori, color, marker_id, scaleX, scaleY):
         marker_pub = rospy.Publisher("/visualization_marker_target", Marker, queue_size = 2)

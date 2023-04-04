@@ -189,6 +189,8 @@ class RunModle(object):
         else:
             rospy.wait_for_message('/camera', sensor_msgs.msg.Image)
 
+        print('Connected to camera.')
+
         start = 0
         while True:
             if self.camera_OR_topic:
@@ -217,17 +219,28 @@ class RunModle(object):
                 publisher_.publish(msg)
                 print(start)
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(md_frame,
-                            str([result[0], result[1]]),
-                            (50, 50),
-                            font, 0.5,
-                            (255, 255, 255),
-                            2,
-                            cv2.LINE_AA)
+                #cv2.putText(md_frame,
+                #            str([result[0], result[1]]),
+                #            (50, 50),
+                #            font, 0.5,
+                #            (255, 255, 255),
+                #            2,
+                #           cv2.LINE_AA)
                 # str([result[0], result[0]])
                 # frame = cv2.cvtColor(md_frame, cv2.COLOR_RGB2GRAY)
                 # frame = cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2GRAY)
-                cv2.imshow('my model', md_frame)
+                A = cv2.resize(frame, (640,480), interpolation = cv2.INTER_AREA)
+                B = cv2.resize(md_frame, (640,480), interpolation = cv2.INTER_AREA)
+                hvc = cv2.hconcat([A, B])
+                scale_percent = 70 # percent of original size
+                width = int(hvc.shape[1] * scale_percent / 100)
+                height = int(hvc.shape[0] * scale_percent / 100)
+                dim = (width, height)
+                resized = cv2.resize(hvc, dim, interpolation = cv2.INTER_AREA)
+
+
+
+                cv2.imshow('my model', resized)
             start += 1
             if cv2.waitKey(5) & 0xFF == 27:
                 break

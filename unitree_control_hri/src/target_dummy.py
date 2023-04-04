@@ -19,7 +19,7 @@ class target_pub(object):
         while not rospy.is_shutdown():  
 
             target_p = Float64MultiArray()
-            target_p.data = [1.3, 0.9, 0]  
+            target_p.data = [2.3, -1.2, 0]  
         
             self.publisher_.publish(target_p)
             rospy.sleep(0.1)  

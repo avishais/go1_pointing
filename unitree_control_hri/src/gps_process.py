@@ -19,14 +19,12 @@ class gps(object):
         rospy.Subscriber('/gps', Point, self.get_gps_coor)
         rospy.wait_for_message("/gps", Point)  
         self.start_read = [self.gps_read.x, self.gps_read.y, self.gps_read.z]
-        print(2)
 
         s = rospy.Service('gps_reset', Trigger, self.trigger)
         self.position_pub = rospy.Publisher('/robot_position', Float64MultiArray, queue_size=1)
 
         self.geod = Geodesic(6378388, 1/297.0) # the international ellipsoid
         msg_pos = Float64MultiArray()
-        print(1)
 
         while not rospy.is_shutdown(): 
             print('Running gps process')
