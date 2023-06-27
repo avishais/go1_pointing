@@ -1,8 +1,19 @@
-to test the modle run:
-roslaunch pointer_model test_pointer_modle.launch pointer:=modle
 
-and in diffrent terminal:
-rosrun pointer_model RealTime_6_pub_ros.py 
+# Prerequisites
+
+1. ROS noetic
+2. pytorch
+
+# Run model
+To run the main model, run:
+'''
+roslaunch pointer_model test_pointer_modle.launch pointer:=modle
+'''
+
+In a diffrent terminal:
+'''
+rosrun pointer_model RealTime_6_pub_ros.py
+'''
 
 
 1. file RealTime_6_pub_ros.py read image from web cam.
